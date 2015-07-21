@@ -258,10 +258,6 @@ Sim.Renderer.prototype.toggleParticles = function() {
 	this.showParticles = !this.showParticles;
 	
 	for (var name in this.robots) {
-		if (!this.robots[name].robot.smart) {
-			continue;
-		}
-		
 		for (var i = 0; i < this.robots[name].particles.length; i++) {
 			if (!this.showParticles) {
 				this.robots[name].particles[i].dir.hide();
@@ -276,10 +272,6 @@ Sim.Renderer.prototype.toggleLocalization = function() {
 	this.showLocalization = !this.showLocalization;
 	
 	for (var name in this.robots) {
-		if (!this.robots[name].robot.smart) {
-			continue;
-		}
-		
 		if (!this.showLocalization) {
 			for (var ballId in this.robots[name].balls) {
 				this.robots[name].balls[ballId].body.remove();
@@ -602,7 +594,7 @@ Sim.Renderer.prototype.addRobot = function(name, robot) {
 	var avatar = this.createRobotAvatar(
 		robot.side == Sim.Game.Side.YELLOW ? '#DD0' : '#00F',
 		robot.radius,
-		this.robots[name].robot.smart ? robot.cameraFOV : null,
+		robot.cameraFOV,
 		robot.cameraDistance
 	);
 
@@ -610,51 +602,49 @@ Sim.Renderer.prototype.addRobot = function(name, robot) {
 	this.robots[name].dir = avatar.dir;
 	this.robots[name].visual = avatar.visual;
 
-	if (this.robots[name].robot.smart) {
-		// localizers
-		this.robots[name].odometerLocalizer = this.createRobotAvatar(
-			'#600',
-			robot.radius / 2
-		).visual.hide();
+	// localizers
+	this.robots[name].odometerLocalizer = this.createRobotAvatar(
+		'#600',
+		robot.radius / 2
+	).visual.hide();
 
-		this.robots[name].intersectionLocalizer = this.createRobotAvatar(
-			'#660',
-			robot.radius / 2
-		).visual.hide();
+	this.robots[name].intersectionLocalizer = this.createRobotAvatar(
+		'#660',
+		robot.radius / 2
+	).visual.hide();
 
-		this.robots[name].particleLocalizer = this.createRobotAvatar(
-			'#060',
-			robot.radius / 2
-		).visual.hide();
+	this.robots[name].particleLocalizer = this.createRobotAvatar(
+		'#060',
+		robot.radius / 2
+	).visual.hide();
 
-		this.robots[name].kalmanLocalizer = this.createRobotAvatar(
-			'#006',
-			robot.radius / 2
-		).visual.hide();
+	this.robots[name].kalmanLocalizer = this.createRobotAvatar(
+		'#006',
+		robot.radius / 2
+	).visual.hide();
 
-		// particles
-		this.robots[name].particles = [];
+	// particles
+	this.robots[name].particles = [];
 
-		for (var i = 0; i < robot.particleLocalizer.particles.length; i++) {
-			var particle = robot.particleLocalizer.particles[i],
-				particleDirWidth = 0.02,
-				particleDirLength = 0.05,
-				particleDir = this.c.path('M-' + particleDirLength + ' -' + (particleDirWidth / 2) + 'M0 -' + (particleDirWidth / 2) + 'L' + particleDirLength + ' -' + (particleDirWidth / 2) + 'L' + particleDirLength + ' ' + (particleDirWidth / 2) + 'L0 ' + (particleDirWidth / 2) + 'L0 -' + (particleDirWidth / 2));
+	for (var i = 0; i < robot.particleLocalizer.particles.length; i++) {
+		var particle = robot.particleLocalizer.particles[i],
+			particleDirWidth = 0.02,
+			particleDirLength = 0.05,
+			particleDir = this.c.path('M-' + particleDirLength + ' -' + (particleDirWidth / 2) + 'M0 -' + (particleDirWidth / 2) + 'L' + particleDirLength + ' -' + (particleDirWidth / 2) + 'L' + particleDirLength + ' ' + (particleDirWidth / 2) + 'L0 ' + (particleDirWidth / 2) + 'L0 -' + (particleDirWidth / 2));
 
-			particleDir.attr({
-				fill: 'rgba(255, 0, 0, 1)',
-				//fill: 'rgb(0, 245, 0)',
-				stroke: 'none',
-				transform: 'T' + particle.x + ' ' + particle.y + 'R' + Raphael.deg(particle.orientation)
-			}).hide();
+		particleDir.attr({
+			fill: 'rgba(255, 0, 0, 1)',
+			//fill: 'rgb(0, 245, 0)',
+			stroke: 'none',
+			transform: 'T' + particle.x + ' ' + particle.y + 'R' + Raphael.deg(particle.orientation)
+		}).hide();
 
-			this.robots[name].particles[i] = {
-				dir: particleDir
-			};
-		}
-
-		this.robots[name].balls = {};
+		this.robots[name].particles[i] = {
+			dir: particleDir
+		};
 	}
+
+	this.robots[name].balls = {};
 };
 
 Sim.Renderer.prototype.updateRobot = function(name, robot) {
@@ -667,10 +657,6 @@ Sim.Renderer.prototype.updateRobot = function(name, robot) {
 	});
 	
 	this.showCommandsQueue(this.robots[name].robot);
-
-	if (!this.robots[name].robot.smart) {
-		return;
-	}
 
 	if (this.showLocalization) {
 		this.robots[name].odometerLocalizer.show().attr({
@@ -799,22 +785,20 @@ Sim.Renderer.prototype.removeRobot = function(name) {
 	var newRobots = {},
 		robotName,
 		i;
-	
-	if (this.robots[name].robot.smart) {
-		for (i = 0; i < this.robots[name].particles.length; i++) {
-			this.robots[name].particles[i].dir.remove();
+
+	for (i = 0; i < this.robots[name].particles.length; i++) {
+		this.robots[name].particles[i].dir.remove();
+	}
+
+	for (i = 0; i < this.robots[name].balls.length; i++) {
+		if (
+			typeof(this.robots[name].balls[i]) != 'object'
+			|| typeof(this.robots[name].balls[i].remove) != 'function'
+		) {
+			continue;
 		}
 
-		for (i = 0; i < this.robots[name].balls.length; i++) {
-			if (
-				typeof(this.robots[name].balls[i]) != 'object'
-				|| typeof(this.robots[name].balls[i].remove) != 'function'
-			) {
-				continue;
-			}
-
-			this.robots[name].balls[i].remove();
-		}
+		this.robots[name].balls[i].remove();
 	}
 	
 	for (robotName in this.robots) {

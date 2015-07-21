@@ -58,67 +58,65 @@ Sim.Robot = function(
 	this.virtualOrientation = this.orientation;
 	this.virtualVelocityX = this.velocityX;
 	this.virtualVelocityY = this.velocityY;
-	
-	if (this.smart) {
-		this.vision = new Sim.Vision();
-        this.odometerLocalizer = new Sim.OdometerLocalizer();
-        this.intersectionLocalizer = new Sim.IntersectionLocalizer();
-		this.particleLocalizer = new Sim.ParticleLocalizer(
-			sim.config.particleLocalizer.particleCount,
-			sim.config.particleLocalizer.forwardNoise,
-			sim.config.particleLocalizer.turnNoise,
-			sim.config.particleLocalizer.distanceSenseNoise,
-			sim.config.particleLocalizer.angleSenseNoise
-		);
-		this.kalmanLocalizer = new Sim.KalmanLocalizer();
-		this.cartesianError = {
-			odometer: new Sim.CartesianError(),
-			intersection: new Sim.CartesianError(),
-			particle: new Sim.CartesianError(),
-			kalman: new Sim.CartesianError()
-		};
 
-		this.ballLocalizer = new Sim.BallLocalizer(
-			sim.config.game.balls
-		);
-	
-		// yellow goal
-		this.particleLocalizer.addLandmark(
-			'yellow-goal-center',
-			0,
-			sim.config.field.height / 2.0
-		);
-		/*this.particleLocalizer.addLandmark(
-			'yellow-goal-left',
-			0,
-			sim.config.field.height / 2.0 - sim.config.field.goalWidth / 2.0
-		);
-		this.particleLocalizer.addLandmark(
-			'yellow-goal-right',
-			0,
-			sim.config.field.height / 2.0 + sim.config.field.goalWidth / 2.0
-		);*/
+	this.vision = new Sim.Vision();
+	this.odometerLocalizer = new Sim.OdometerLocalizer();
+	this.intersectionLocalizer = new Sim.IntersectionLocalizer();
+	this.particleLocalizer = new Sim.ParticleLocalizer(
+		sim.config.particleLocalizer.particleCount,
+		sim.config.particleLocalizer.forwardNoise,
+		sim.config.particleLocalizer.turnNoise,
+		sim.config.particleLocalizer.distanceSenseNoise,
+		sim.config.particleLocalizer.angleSenseNoise
+	);
+	this.kalmanLocalizer = new Sim.KalmanLocalizer();
+	this.cartesianError = {
+		odometer: new Sim.CartesianError(),
+		intersection: new Sim.CartesianError(),
+		particle: new Sim.CartesianError(),
+		kalman: new Sim.CartesianError()
+	};
 
-		// blue goal
-		this.particleLocalizer.addLandmark(
-			'blue-goal-center',
-			sim.config.field.width,
-			sim.config.field.height / 2.0
-		);
-		/*this.particleLocalizer.addLandmark(
-			'blue-goal-left',
-			sim.config.field.width,
-			sim.config.field.height / 2.0 - sim.config.field.goalWidth / 2.0
-		);
-		this.particleLocalizer.addLandmark(
-			'blue-goal-right',
-			sim.config.field.width,
-			sim.config.field.height / 2.0 + sim.config.field.goalWidth / 2.0
-		);*/
-			
-		this.particleLocalizer.init();
-		this.resetDeviation();
-	}
+	this.ballLocalizer = new Sim.BallLocalizer(
+		sim.config.game.balls
+	);
+
+	// yellow goal
+	this.particleLocalizer.addLandmark(
+		'yellow-goal-center',
+		0,
+		sim.config.field.height / 2.0
+	);
+	/*this.particleLocalizer.addLandmark(
+		'yellow-goal-left',
+		0,
+		sim.config.field.height / 2.0 - sim.config.field.goalWidth / 2.0
+	);
+	this.particleLocalizer.addLandmark(
+		'yellow-goal-right',
+		0,
+		sim.config.field.height / 2.0 + sim.config.field.goalWidth / 2.0
+	);*/
+
+	// blue goal
+	this.particleLocalizer.addLandmark(
+		'blue-goal-center',
+		sim.config.field.width,
+		sim.config.field.height / 2.0
+	);
+	/*this.particleLocalizer.addLandmark(
+		'blue-goal-left',
+		sim.config.field.width,
+		sim.config.field.height / 2.0 - sim.config.field.goalWidth / 2.0
+	);
+	this.particleLocalizer.addLandmark(
+		'blue-goal-right',
+		sim.config.field.width,
+		sim.config.field.height / 2.0 + sim.config.field.goalWidth / 2.0
+	);*/
+
+	this.particleLocalizer.init();
+	this.resetDeviation();
 	
 	this.wheelOmegas = [
 		0.0, 0.0, 0.0, 0.0
@@ -157,10 +155,6 @@ Sim.Robot = function(
 };
 
 Sim.Robot.prototype.resetDeviation = function() {
-	if (!this.smart) {
-		return;
-	}
-
 	this.odometerLocalizer.setPosition(this.x, this.y, this.orientation);
     this.intersectionLocalizer.setPosition(this.x, this.y, this.orientation);
 	this.particleLocalizer.setPosition(this.x, this.y, this.orientation);
@@ -169,12 +163,10 @@ Sim.Robot.prototype.resetDeviation = function() {
 
 Sim.Robot.prototype.step = function(dt) {
 	this.dt = dt;
-	
-	if (this.smart) {
-		this.updateVision(dt);
-		this.updateRobotLocalizer(dt);
-		this.updateBallLocalizer(dt);
-	}
+
+	this.updateVision(dt);
+	this.updateRobotLocalizer(dt);
+	this.updateBallLocalizer(dt);
 	
 	this.updateMovement(dt);
 	this.handleBalls(dt);
@@ -397,61 +389,59 @@ Sim.Robot.prototype.updateMovement = function(dt) {
 			this.radius - sim.config.game.robotConfineThreshold
 		);
 	}
-	
-	if (this.smart) {
-		this.particleLocalizer.move(
-			noisyMovement.velocityX,
-			noisyMovement.velocityY,
-			noisyMovement.omega,
-			dt,
-			Sim.Util.isEmpty(this.distances) ? true : false
-		);
-		this.intersectionLocalizer.move(
-			noisyMovement.velocityX,
-			noisyMovement.velocityY,
-			noisyMovement.omega,
-			dt
-		);
-		this.odometerLocalizer.move(
-			noisyMovement.velocityX,
-			noisyMovement.velocityY,
-			noisyMovement.omega,
-			dt
-		);
 
-		// input for Kalman
-		var pos = this.intersectionLocalizer.getPosition(),
-			commandOmegas = this.motionModel.getWheelOmegas(this.targetDir, this.targetOmega),
-			commandMovement = this.motionModel.getMovement(commandOmegas);
+	this.particleLocalizer.move(
+		noisyMovement.velocityX,
+		noisyMovement.velocityY,
+		noisyMovement.omega,
+		dt,
+		Sim.Util.isEmpty(this.distances) ? true : false
+	);
+	this.intersectionLocalizer.move(
+		noisyMovement.velocityX,
+		noisyMovement.velocityY,
+		noisyMovement.omega,
+		dt
+	);
+	this.odometerLocalizer.move(
+		noisyMovement.velocityX,
+		noisyMovement.velocityY,
+		noisyMovement.omega,
+		dt
+	);
 
-		this.kalmanLocalizer.move(
-			pos.x,
-			pos.y,
-			pos.orientation,
-			commandMovement.velocityX,
-			commandMovement.velocityY,
-			commandMovement.omega,
-			noisyMovement.velocityX,
-			noisyMovement.velocityY,
-			noisyMovement.omega,
-			dt
-		);
+	// input for Kalman
+	var pos = this.intersectionLocalizer.getPosition(),
+		commandOmegas = this.motionModel.getWheelOmegas(this.targetDir, this.targetOmega),
+		commandMovement = this.motionModel.getMovement(commandOmegas);
 
-		if (this.perfectLocalization) {
-			this.virtualX = this.x;
-			this.virtualY = this.y;
-			this.virtualOrientation = this.orientation;
+	this.kalmanLocalizer.move(
+		pos.x,
+		pos.y,
+		pos.orientation,
+		commandMovement.velocityX,
+		commandMovement.velocityY,
+		commandMovement.omega,
+		noisyMovement.velocityX,
+		noisyMovement.velocityY,
+		noisyMovement.omega,
+		dt
+	);
 
-			//sim.dbg.box('Evaluation', 'n/a');
-		} else {
-			var position = this.particleLocalizer.getPosition(this);
+	if (this.perfectLocalization) {
+		this.virtualX = this.x;
+		this.virtualY = this.y;
+		this.virtualOrientation = this.orientation;
 
-			this.virtualX = position.x;
-			this.virtualY = position.y;
-			this.virtualOrientation = position.orientation;
+		//sim.dbg.box('Evaluation', 'n/a');
+	} else {
+		var position = this.particleLocalizer.getPosition(this);
 
-			//sim.dbg.box('Evaluation', position.evaluation, 2);
-		}
+		this.virtualX = position.x;
+		this.virtualY = position.y;
+		this.virtualOrientation = position.orientation;
+
+		//sim.dbg.box('Evaluation', position.evaluation, 2);
 	}
 };
 
