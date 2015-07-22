@@ -267,8 +267,23 @@ Sim.Robot.prototype.updateVision = function(dt) {
 };
 
 Sim.Robot.prototype.updateRobotLocalizer = function(dt) {
+
+	//Convert simulated distances to camera pixels
+	var measurements = {};
+	for (var landmarkName in this.distances) {
+		var polarDistance = this.distances[landmarkName];
+		var cartesianDistance = Sim.Math.polarToCartesian(polarDistance);
+		var cameraPixel = Sim.Camera.worldToCamera(
+			{
+				x: cartesianDistance.y,
+				y: cartesianDistance.x
+			}
+		);
+		measurements[landmarkName] = cameraPixel;
+	}
+
 	this.particleLocalizer.update(
-		this.distances,
+		measurements,
 		{
 			x: this.intersectionLocalizer.x,
 			y: this.intersectionLocalizer.y,
@@ -395,7 +410,7 @@ Sim.Robot.prototype.updateMovement = function(dt) {
 		noisyMovement.velocityY,
 		noisyMovement.omega,
 		dt,
-		Sim.Util.isEmpty(this.distances) ? true : false
+		Sim.Util.isEmpty(this.distances) ? true : false //TODO: it don't think the particles should move "exact", if there are no measurements??
 	);
 	this.intersectionLocalizer.move(
 		noisyMovement.velocityX,

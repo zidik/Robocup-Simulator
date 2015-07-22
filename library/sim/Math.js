@@ -18,6 +18,21 @@ Sim.Math.radToDeg = function(radians) {
 	return radians * 180.0 / Math.PI;
 };
 
+Sim.Math.polarToCartesian = function(polar) {
+	return {
+		//NB! y == forward, x == right (positive angle direction)
+		x: polar.distance * Math.cos(polar.angle),
+		y: polar.distance * Math.sin(polar.angle)
+	};
+};
+
+Sim.Math.cartesianToPolar = function(cartesian) {
+	return {
+		distance: Sim.Math.getVectorLength(cartesian),
+		angle: Math.atan2(cartesian.y, cartesian.x)
+	};
+};
+
 //+ Jonas Raoni Soares Silva
 //@ http://jsfromhell.com/math/is-point-in-poly [v1.0]
 Sim.Math.isPointInPoly = function(poly, pt) {

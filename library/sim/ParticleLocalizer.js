@@ -68,7 +68,7 @@ Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, omega, dt,
 			particleOrientationNoise = 0;
 		}
 		
-		this.particles[i].orientation = this.particles[i].orientation + omega * dt + particleOrientationNoise;
+		this.particles[i].orientation = this.particles[i].orientation + omega * dt + particleOrientationNoise; //TODO: This is Wrong! - Orientation noise should also change with dt
 		this.particles[i].x += (particleVelocityX * Math.cos(this.particles[i].orientation) - particleVelocityY * Math.sin(this.particles[i].orientation)) * dt;
 		this.particles[i].y += (particleVelocityX * Math.sin(this.particles[i].orientation) + particleVelocityY * Math.cos(this.particles[i].orientation)) * dt;
 	}
@@ -113,23 +113,31 @@ Sim.ParticleLocalizer.prototype.getMeasurementProbability = function(
 	var probability = 1.0,
 		landmarkName,
 		landmark,
-		measuredDistance,
-		measuredAngle,
-		expectedDistance,
-		expectedAngle;
-	
+		measurement,
+		expectation,
+		error;
 	for (landmarkName in measurements) {
 		landmark = this.landmarks[landmarkName];
-		measuredDistance = measurements[landmarkName].distance;
-		measuredAngle = measurements[landmarkName].angle;
-		expectedDistance = Sim.Math.getDistanceBetween(particle, landmark);
-		expectedAngle = Sim.Math.getAngleBetween(landmark, particle, particle.orientation);
+		measurement = measurements[landmarkName];
+		var landmarkRelativePosition = {
+			x: landmark.x - particle.x,
+			y: landmark.y - particle.y
+		};
+		var landmarkPolarPosition = Sim.Math.cartesianToPolar(landmarkRelativePosition);
+		landmarkPolarPosition.angle -= particle.orientation;
+		landmarkRelativePosition = Sim.Math.polarToCartesian(landmarkPolarPosition);
 
-		probability *= Sim.Math.getGaussian(expectedAngle, this.angleSenseNoise, measuredAngle)
-			+ Sim.Math.getGaussian(expectedDistance, this.distanceSenseNoise, measuredDistance);
+		expectation = Sim.Camera.worldToCamera(
+			{
+				x: landmarkRelativePosition.y,
+				y: landmarkRelativePosition.x
+			}
+		);
+		error = Sim.Math.getDistanceBetween(measurement, expectation);
+		probability *= Sim.Math.getGaussian(0, 200.0, error);
 	}
 	
-	return probability;
+	return probability; //TODO:now that probability should not be used directly, because one erroneous measurement could pull it really low. The change of probability should be limited?
 };
 
 Sim.ParticleLocalizer.prototype.resample = function(particles) {
