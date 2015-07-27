@@ -9,7 +9,6 @@ Sim.ParticleLocalizer = function(
 	this.x                  = 0;
 	this.y                  = 0;
 	this.orientation        = 0;
-	this.injectedParticles  = 0;
 };
 
 Sim.ParticleLocalizer.Particle = function(x, y, orientation, probability) {
@@ -71,7 +70,7 @@ Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, omega, dt,
 	}
 };
 
-Sim.ParticleLocalizer.prototype.update = function(measurements, observedPose) {
+Sim.ParticleLocalizer.prototype.update = function(measurements) {
 	if (Sim.Util.isEmpty(measurements)) {
 		return;
 	}
@@ -79,12 +78,6 @@ Sim.ParticleLocalizer.prototype.update = function(measurements, observedPose) {
 	var particle,
 		maxProbability = null,
 		i;
-
-	for (i = 0; i < this.injectedParticles; i++) {
-		this.particles[i].x = observedPose.x;
-		this.particles[i].y = observedPose.y;
-		this.particles[i].orientation = observedPose.orientation;
-	}
 
 	for (i = 0; i < this.particles.length; i++) {
 		particle = this.particles[i];
@@ -126,7 +119,7 @@ Sim.ParticleLocalizer.prototype.getMeasurementProbability = function(
 
 		expectation = Sim.Camera.worldToCamera(landmarkRelativePosition);
 		error = Sim.Math.getDistanceBetween(measurement, expectation);
-		probability *= Sim.Math.getGaussian(0, 200.0, error);
+		probability *= Sim.Math.getGaussian(0, 10.0, error);
 	}
 	
 	return probability; //TODO:now that probability should not be used directly, because one erroneous measurement could pull it really low. The change of probability should be limited?

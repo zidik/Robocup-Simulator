@@ -272,16 +272,13 @@ Sim.Robot.prototype.updateRobotLocalizer = function(dt) {
 		var polarDistance = this.distances[landmarkName];
 		var cartesianDistance = Sim.Math.polarToCartesian(polarDistance);
 		measurements[landmarkName] = Sim.Camera.worldToCamera(cartesianDistance);
+		console.log()
+		//simulate noise in measurements (camera shake)
+		measurements[landmarkName].x += Sim.Util.randomGaussian(10.0);
+		measurements[landmarkName].y += Sim.Util.randomGaussian(10.0);
 	}
 
-	this.particleLocalizer.update(
-		measurements,
-		{
-			x: this.intersectionLocalizer.x,
-			y: this.intersectionLocalizer.y,
-			orientation: this.intersectionLocalizer.orientation
-		}
-	);
+	this.particleLocalizer.update(measurements);
 	
 	this.localizeByOdometer();
 	this.localizeByDistances(this.goals);
@@ -402,7 +399,7 @@ Sim.Robot.prototype.updateMovement = function(dt) {
 		noisyMovement.velocityY,
 		noisyMovement.omega,
 		dt,
-		Sim.Util.isEmpty(this.distances) ? true : false //TODO: it don't think the particles should move "exact", if there are no measurements??
+		false
 	);
 	this.intersectionLocalizer.move(
 		noisyMovement.velocityX,
