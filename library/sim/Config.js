@@ -16,7 +16,7 @@ Sim.Config = {
 		balls: 11,
 		ballRemoveThreshold: 0.5,
 		robotConfineThreshold: 0.5,
-		useWalls: true,
+		useWalls: false,
 		randomBalls: false
 	},
 	ball: {
@@ -85,7 +85,7 @@ Sim.Config = {
 		use: false
 	},
 	particleLocalizer: {
-		particleCount: 100,
+		particleCount: 1000,
 		forwardNoise: 0.75,
 		turnNoise: Sim.Math.degToRad(45.0)
 	},
