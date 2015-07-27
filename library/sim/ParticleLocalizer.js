@@ -127,12 +127,7 @@ Sim.ParticleLocalizer.prototype.getMeasurementProbability = function(
 		landmarkPolarPosition.angle -= particle.orientation;
 		landmarkRelativePosition = Sim.Math.polarToCartesian(landmarkPolarPosition);
 
-		expectation = Sim.Camera.worldToCamera(
-			{
-				x: landmarkRelativePosition.y,
-				y: landmarkRelativePosition.x
-			}
-		);
+		expectation = Sim.Camera.worldToCamera(landmarkRelativePosition);
 		error = Sim.Math.getDistanceBetween(measurement, expectation);
 		probability *= Sim.Math.getGaussian(0, 200.0, error);
 	}

@@ -273,13 +273,7 @@ Sim.Robot.prototype.updateRobotLocalizer = function(dt) {
 	for (var landmarkName in this.distances) {
 		var polarDistance = this.distances[landmarkName];
 		var cartesianDistance = Sim.Math.polarToCartesian(polarDistance);
-		var cameraPixel = Sim.Camera.worldToCamera(
-			{
-				x: cartesianDistance.y,
-				y: cartesianDistance.x
-			}
-		);
-		measurements[landmarkName] = cameraPixel;
+		measurements[landmarkName] = Sim.Camera.worldToCamera(cartesianDistance);
 	}
 
 	this.particleLocalizer.update(
