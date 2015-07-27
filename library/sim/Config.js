@@ -82,10 +82,10 @@ Sim.Config = {
 		dribblerAngle: Sim.Math.degToRad(20.0),
 		omegaDeviation: 0.3,
 		perfectLocalization: false,
-		use: true
+		use: false
 	},
 	particleLocalizer: {
-		particleCount: 1000,
+		particleCount: 100,
 		forwardNoise: 0.75,
 		turnNoise: Sim.Math.degToRad(45.0),
 		distanceSenseNoise: 0.2,
@@ -108,5 +108,15 @@ Sim.Config = {
 		ballMaxVelocity: 8.0,
 		ballRemoveTime: 0.3,
 		velocityUpdateMaxTime: 0.3
+	},
+
+	camera: {
+		width: 1280,
+		height : 1024,
+
+		A: 120.11218157847301,
+		B: -0.037205566171594123,
+		C: 0.2124259596292023,
+		horizon: 119.40878
 	}
 };
