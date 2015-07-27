@@ -65,9 +65,7 @@ Sim.Robot = function(
 	this.particleLocalizer = new Sim.ParticleLocalizer(
 		sim.config.particleLocalizer.particleCount,
 		sim.config.particleLocalizer.forwardNoise,
-		sim.config.particleLocalizer.turnNoise,
-		sim.config.particleLocalizer.distanceSenseNoise,
-		sim.config.particleLocalizer.angleSenseNoise
+		sim.config.particleLocalizer.turnNoise
 	);
 	this.kalmanLocalizer = new Sim.KalmanLocalizer();
 	this.cartesianError = {

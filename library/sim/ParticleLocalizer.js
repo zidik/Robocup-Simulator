@@ -1,12 +1,9 @@
 Sim.ParticleLocalizer = function(
-	particleCount, forwardNoise, turnNoise,
-	distanceSenseNoise, angleSenseNoise
+	particleCount, forwardNoise, turnNoise
 ) {
 	this.particleCount      = particleCount || 1000;
 	this.forwardNoise       = forwardNoise || 0.1;
 	this.turnNoise          = typeof(turnNoise) !== 'undefined' ? turnNoise : 0.1;
-	this.distanceSenseNoise = typeof(distanceSenseNoise) !== 'undefined' ? distanceSenseNoise : 0.1;
-	this.angleSenseNoise    = angleSenseNoise || Sim.Math.degToRad(5);
 	this.landmarks          = {};
 	this.particles          = [];
 	this.x                  = 0;

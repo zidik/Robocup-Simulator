@@ -87,9 +87,7 @@ Sim.Config = {
 	particleLocalizer: {
 		particleCount: 100,
 		forwardNoise: 0.75,
-		turnNoise: Sim.Math.degToRad(45.0),
-		distanceSenseNoise: 0.2,
-		angleSenseNoise: Sim.Math.degToRad(10.0)
+		turnNoise: Sim.Math.degToRad(45.0)
 	},
 	kalmanLocalizer: {
 		processError: 0.0001,
