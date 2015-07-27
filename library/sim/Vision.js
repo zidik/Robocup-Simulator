@@ -175,13 +175,13 @@ Sim.Vision.prototype.getMeasurements = function(polygon, x, y, orientation) {
 	for (i = 0; i < goals.length; i++) {
 		goal = goals[i];
 
-		noisyDistance = goal.distance + goal.distance * Sim.Util.randomGaussian(sim.config.vision.distanceDeviation);
-		noisyAngle = goal.angle + Sim.Util.randomGaussian(sim.config.vision.angleDeviation);
+		noisyDistance = goal.distance; // + goal.distance * Sim.Util.randomGaussian(sim.config.vision.distanceDeviation);
+		noisyAngle = goal.angle; // + Sim.Util.randomGaussian(sim.config.vision.angleDeviation);
 
 		if (goal.side == Sim.Game.Side.YELLOW) {
 			measurements['yellow-goal-center'] = {
 				distance: noisyDistance,
-				angle: noisyDistance
+				angle: noisyAngle
 			};
 			//measurements['yellow-goal-left'] = goal.leftEdgeDistance;
 			//measurements['yellow-goal-right'] = goal.rightEdgeDistance;
