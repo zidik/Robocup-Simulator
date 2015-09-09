@@ -726,7 +726,7 @@ Sim.Renderer.prototype.updateRobot = function(name, robot) {
 				//if (i < 50) {
 					particleDir.show().attr({
 						transform: 'T' + particle.x + ' ' + particle.y + 'R' + Raphael.deg(particle.orientation),
-						fill: 'rgba(255, 0, 0, ' + Math.max(Math.min(particle.probability, 1.0), 0.1) + ')'
+						fill: 'rgba(' + (1.0-particle.probability)*255 + ', ' + (particle.probability)*255 + ', ' + particle.probability*255 + ', 1)'
 					});
 				//} else {
 				//	particleDir.hide();

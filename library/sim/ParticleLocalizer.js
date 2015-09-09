@@ -45,10 +45,10 @@ Sim.ParticleLocalizer.prototype.setPosition = function(x, y, orientation) {
     }
 };
 
-Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, omega, dt, exact) {
+Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, velocityOmega, dt, exact) {
 	var particleVelocityX,
 		particleVelocityY,
-		particleOrientationNoise,
+		particleVelocityOmega,
 		i;
 
 	for (i = 0; i < this.particles.length; i++) {
@@ -57,14 +57,14 @@ Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, omega, dt,
 			particleVelocityY = velocityY + velocityY * Sim.Util.randomGaussian(this.forwardNoise);*/
 			particleVelocityX = velocityX + Sim.Util.randomGaussian(this.forwardNoise);
 			particleVelocityY = velocityY + Sim.Util.randomGaussian(this.forwardNoise);
-			particleOrientationNoise = Sim.Util.randomGaussian(this.turnNoise) * dt;
+			particleVelocityOmega = velocityOmega + Sim.Util.randomGaussian(this.turnNoise);
 		} else {
 			particleVelocityX = velocityX;
 			particleVelocityY = velocityY;
-			particleOrientationNoise = 0;
+			particleVelocityOmega = velocityOmega;
 		}
 		
-		this.particles[i].orientation = this.particles[i].orientation + omega * dt + particleOrientationNoise; //TODO: This is Wrong! - Orientation noise should also change with dt
+		this.particles[i].orientation += particleVelocityOmega * dt;
 		this.particles[i].x += (particleVelocityX * Math.cos(this.particles[i].orientation) - particleVelocityY * Math.sin(this.particles[i].orientation)) * dt;
 		this.particles[i].y += (particleVelocityX * Math.sin(this.particles[i].orientation) + particleVelocityY * Math.cos(this.particles[i].orientation)) * dt;
 	}
