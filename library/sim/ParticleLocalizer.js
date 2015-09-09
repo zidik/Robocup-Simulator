@@ -19,14 +19,21 @@ Sim.ParticleLocalizer.Particle = function(x, y, orientation, probability) {
 };
 
 Sim.ParticleLocalizer.prototype.init = function() {
-	for (var i = 0; i < this.particleCount; i++) {
-		this.particles.push(new Sim.ParticleLocalizer.Particle(
+	var randomParticles = this.generateRandomParticles(this.particleCount);
+	this.particles = this.particles.concat(randomParticles);
+};
+
+Sim.ParticleLocalizer.prototype.generateRandomParticles = function(count) {
+	var randomParticles = [];
+	for (var i = 0; i < count; i++) {
+		randomParticles.push(new Sim.ParticleLocalizer.Particle(
 			Sim.Util.random(0, sim.config.field.width * 1000) / 1000.0,
 			Sim.Util.random(0, sim.config.field.height * 1000) / 1000.0,
 			Sim.Util.random(0, Sim.Math.TWO_PI * 1000) / 1000.0,
-			1
+			0.0
 		));
 	}
+	return randomParticles;
 };
 
 Sim.ParticleLocalizer.prototype.addLandmark = function(name, x, y) {
@@ -53,8 +60,6 @@ Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, velocityOm
 
 	for (i = 0; i < this.particles.length; i++) {
 		if (exact !== true) {
-			/*particleVelocityX = velocityX + velocityX * Sim.Util.randomGaussian(this.forwardNoise);
-			particleVelocityY = velocityY + velocityY * Sim.Util.randomGaussian(this.forwardNoise);*/
 			particleVelocityX = velocityX + Sim.Util.randomGaussian(this.forwardNoise);
 			particleVelocityY = velocityY + Sim.Util.randomGaussian(this.forwardNoise);
 			particleVelocityOmega = velocityOmega + Sim.Util.randomGaussian(this.turnNoise);
@@ -63,7 +68,7 @@ Sim.ParticleLocalizer.prototype.move = function(velocityX, velocityY, velocityOm
 			particleVelocityY = velocityY;
 			particleVelocityOmega = velocityOmega;
 		}
-		
+
 		this.particles[i].orientation += particleVelocityOmega * dt;
 		this.particles[i].x += (particleVelocityX * Math.cos(this.particles[i].orientation) - particleVelocityY * Math.sin(this.particles[i].orientation)) * dt;
 		this.particles[i].y += (particleVelocityX * Math.sin(this.particles[i].orientation) + particleVelocityY * Math.cos(this.particles[i].orientation)) * dt;
@@ -128,11 +133,13 @@ Sim.ParticleLocalizer.prototype.getMeasurementProbability = function(
 Sim.ParticleLocalizer.prototype.resample = function(particles) {
 	var resampledParticles = [],
 		particleCount = particles.length,
+		randomParticleCount = particleCount/10,
+		resampledParticleCount = particleCount - randomParticleCount,
 		index = Sim.Util.random(0, particleCount - 1),
 		beta = 0.0,
 		i;
-	
-	for (i = 0; i < particles.length; i++) {
+
+	for (i = 0; i < resampledParticleCount; i++) {
 		beta += Math.random() * 2.0;
 		
 		while (beta > particles[index].probability) {
@@ -147,56 +154,33 @@ Sim.ParticleLocalizer.prototype.resample = function(particles) {
 			particles[index].probability
 		));
 	}
-	
+
+	resampledParticles = resampledParticles.concat(this.generateRandomParticles(randomParticleCount));
+
 	return resampledParticles;
 };
-
-/* couldn't get the text-book algorithm to really work
-Sim.ParticleLocalizer.prototype.resample = function(particles) {
-	var resampledParticles = [],
-		M = particles.length,
-		invM = 1.0 / M,
-		r = Sim.Util.random(0, invM * 1000000.0) / 1000000.0,
-		c = particles[1].probability,
-		i = 1,
-		U,
-		m;
-
-	for (m = 1; m <= M; m++) {
-		U = r + (m - 1) * invM;
-
-		while (U > c) {
-			i = i + 1;
-			c = c + particles[i].probability;
-		}
-
-		resampledParticles.push(new Sim.ParticleLocalizer.Particle(
-			particles[i].x,
-			particles[i].y,
-			particles[i].orientation,
-			particles[i].probability
-		));
-	}
-
-	return resampledParticles;
-};*/
 
 Sim.ParticleLocalizer.prototype.getPosition = function(robot) {
 	var evaluation = this.evaluate(robot, this.particles),
 		xSum = 0,
 		ySum = 0,
 		orientationSum = 0,
+		totalWeight = 0.0,
 		i;
 	
 	for (i = 0; i < this.particles.length; i++) {
-		xSum += this.particles[i].x;
-		ySum += this.particles[i].y;
-		orientationSum += this.particles[i].orientation;
+		var particle = this.particles[i];
+		var weight = particle.probability;
+		totalWeight += weight;
+
+		xSum += particle.x * weight;
+		ySum += particle.y * weight;
+		orientationSum += particle.orientation * weight;
 	}
 
-	this.x = xSum / this.particles.length;
-	this.y = ySum / this.particles.length;
-	this.orientation = (orientationSum / this.particles.length) % Sim.Math.TWO_PI;
+	this.x = xSum / totalWeight;
+	this.y = ySum / totalWeight;
+	this.orientation = (orientationSum / totalWeight) % Sim.Math.TWO_PI;
 
 	while (this.orientation < 0) {
 		this.orientation += Sim.Math.TWO_PI;
